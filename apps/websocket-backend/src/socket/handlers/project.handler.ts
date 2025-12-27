@@ -11,6 +11,7 @@ export const projectHandler = (io: Server, socket: Socket) => {
     
     if (!projectId) {
       console.error("❌ No projectId provided!");
+      
       return;
     }
 

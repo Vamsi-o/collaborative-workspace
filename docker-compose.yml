@@ -1,0 +1,140 @@
+# version: "3.8"
+
+# services:
+#   postgres:
+#     image: postgres:16-alpine
+#     container_name: collab-postgres
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: mysecretpassword
+#       POSTGRES_DB: postgres
+#     ports:
+#       - "5432:5432"
+#     networks:
+#       - app-network
+
+#   redis:
+#     image: redis:7-alpine
+#     container_name: collab-redis
+#     ports:
+#       - "6379:6379"
+#     networks:
+#       - app-network
+
+#   http-backend:
+#     build:
+#       context: .
+#       dockerfile: apps/http-backend/Dockerfile
+#     container_name: collab-http
+#     ports:
+#       - "3000:3000"
+#     environment:
+#       DATABASE_URL: postgresql://postgres:mysecretpassword@collab-postgres:5432/postgres
+#       JWT_SECRET: secret
+#       REDIS_HOST: collab-redis
+#       REDIS_PORT: 6379
+#     networks:
+#       - app-network
+
+#   websocket-backend:
+#     build:
+#       context: .
+#       dockerfile: apps/websocket-backend/Dockerfile
+#     container_name: collab-websocket
+#     ports:
+#       - "3001:3001"
+#     environment:
+#       DATABASE_URL: postgresql://postgres:mysecretpassword@collab-postgres:5432/postgres
+#       JWT_SECRET: secret
+#       PORT: 3001
+#       REDIS_HOST: collab-redis
+#       REDIS_PORT: 6379
+#     networks:
+#       - app-network
+
+# networks:
+#   app-network:
+#     driver: bridge
+
+# volumes:
+#   postgres_data:
+
+
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: collab-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: collab-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  http-backend:
+    build:
+      context: .
+      dockerfile: apps/http-backend/Dockerfile
+    container_name: collab-http
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:mysecretpassword@collab-postgres:5432/postgres
+      JWT_SECRET: secret
+      REDIS_HOST: collab-redis
+      REDIS_PORT: 6379
+    networks:
+      - app-network
+
+  websocket-backend:
+    build:
+      context: .
+      dockerfile: apps/websocket-backend/Dockerfile
+    container_name: collab-websocket
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://postgres:mysecretpassword@collab-postgres:5432/postgres
+      JWT_SECRET: secret
+      PORT: 3001
+      REDIS_HOST: collab-redis
+      REDIS_PORT: 6379
+    networks:
+      - app-network
+    depends_on:
+      - redis
+
+  worker-backend:
+    build:
+      context: .
+      dockerfile: apps/worker-backend/Dockerfile
+    container_name: collab-worker
+    environment:
+      DATABASE_URL: postgresql://postgres:mysecretpassword@collab-postgres:5432/postgres
+      REDIS_HOST: collab-redis
+      REDIS_PORT: 6379
+    networks:
+      - app-network
+    depends_on:
+      - postgres
+      - redis
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

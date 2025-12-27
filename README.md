@@ -1,154 +1,461 @@
-# Turborepo starter
+# Real-Time Collaborative Workspace Backend
 
-This Turborepo starter is maintained by the Turborepo core team.
+Production-grade microservices architecture for real-time collaborative workspace with JWT authentication, Role-Based Access Control (RBAC), WebSocket communication, and asynchronous job processing.
 
-## Using this example
+## Architecture
 
-Run the following command:
+**Microservices:**
+- **HTTP Backend** (Port 3000): REST APIs for authentication, projects, jobs
+- **WebSocket Backend** (Port 3001): Real-time collaboration events
+- **Worker Backend**: Asynchronous job processing with Bull queue
 
-```sh
-npx create-turbo@latest
+**Infrastructure:**
+- PostgreSQL: User, project, and job data storage
+- Redis: Pub/Sub for events, queuing, and caching
+- Docker: Containerized deployment for all services
+
+**Tech Stack:**
+- Node.js + TypeScript
+- Express + Socket.io
+- Prisma ORM
+- Bull Queue
+- JWT Authentication with bcrypt
+
+## Features Implemented
+
+### Authentication & Authorization ✅
+- JWT-based authentication with token expiration
+- Role-Based Access Control (RBAC): OWNER, COLLABORATOR, VIEWER
+- Password hashing using bcrypt
+- Session management via JWT tokens
+
+### Project & Workspace APIs ✅
+- CRUD operations for projects
+- Collaborator management with role assignment
+- RESTful API design with proper HTTP status codes
+- Permission checks for project access
+
+### Real-Time Collaboration ✅
+- WebSocket connections authenticated via JWT
+- Redis Pub/Sub for scalable event distribution
+- Events: user join/leave, cursor updates, project changes
+- Support for horizontal scaling
+
+### Asynchronous Job Processing ✅
+- Bull queue for reliable job management
+- Background worker processing with status tracking (PENDING, PROCESSING, COMPLETED, FAILED)
+- Retry logic with exponential backoff
+- Job result retrieval
+
+### Data Storage ✅
+- PostgreSQL with Prisma ORM for type-safe queries
+- Indexed fields for performance (e.g., userId, projectId, email)
+- Redis for caching and session data
+
+## Local Setup
+
+### Prerequisites
+- Docker & Docker Compose
+- Node.js 20+ (for local development)
+- pnpm package manager
+
+### Run with Docker
+
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd collaborative-workspace
+
+# Start all services
+docker-compose up
+
+# Services available at:
+# HTTP API: http://localhost:3000
+# WebSocket: ws://localhost:3001
+# PostgreSQL: localhost:5432
+# Redis: localhost:6379
 ```
 
-## What's inside?
+### Run Locally (Development)
 
-This Turborepo includes the following packages/apps:
+```bash
+# Install dependencies
+pnpm install
 
-### Apps and Packages
+# Generate Prisma client
+cd packages/database
+pnpm prisma generate
+pnpm prisma migrate dev
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+# Start services in separate terminals
+cd apps/http-backend && pnpm dev
+cd apps/websocket-backend && pnpm dev
+cd apps/worker-backend && pnpm dev
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## API Documentation
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+### Base URL: `http://localhost:3000/api/v1`
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+### Authentication
 
-### Develop
+All protected endpoints require a JWT token in the Authorization header: `Authorization: Bearer <token>`
 
-To develop all apps and packages, run the following command:
+#### POST /auth/signup
+Register a new user.
 
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+**Request Body:**
+```json
+{
+    "email": "user@example.com",
+    "password": "password123",
+    "name": "John Doe"
+}
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+**Response (201):**
+```json
+{
+    "success": true,
+    "data": {
+        "email": "user@example.com",
+        "name": "John Doe"
+    }
+}
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+#### POST /auth/login
+Authenticate and receive a JWT token.
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+**Request Body:**
+```json
+{
+    "email": "user@example.com",
+    "password": "password123"
+}
 ```
 
-## Useful Links
+**Response (200):**
+```json
+{
+    "success": true,
+    "data": {
+        "token": "jwt_token_here",
+        "user": {
+            "id": "uuid",
+            "email": "user@example.com",
+            "name": "John Doe"
+        }
+    }
+}
+```
 
-Learn more about the power of Turborepo:
+### Projects (Requires Authentication)
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+#### POST /projects
+Create a new project.
+
+**Request Body:**
+```json
+{
+    "name": "My Project",
+    "description": "Project description"
+}
+```
+
+**Response (201):**
+```json
+{
+    "id": "project-uuid",
+    "name": "My Project",
+    "description": "Project description",
+    "ownerId": "user-uuid",
+    "createdAt": "2025-12-27T..."
+}
+```
+
+#### GET /projects
+List user's projects.
+
+**Response (200):**
+```json
+[
+    {
+        "id": "uuid",
+        "name": "Project 1",
+        "role": "OWNER",
+        "collaborators": 3
+    }
+]
+```
+
+#### GET /projects/:id
+Get project details.
+
+**Response (200):**
+```json
+{
+    "id": "uuid",
+    "name": "Project 1",
+    "description": "...",
+    "owner": { "id": "...", "name": "..." },
+    "collaborators": [
+        {
+            "user": { "id": "...", "email": "..." },
+            "role": "COLLABORATOR"
+        }
+    ]
+}
+```
+
+#### PUT /projects/:id
+Update project (OWNER or COLLABORATOR).
+
+**Request Body:**
+```json
+{
+    "name": "Updated Name",
+    "description": "Updated description"
+}
+```
+
+**Response (200):** Project object
+
+#### DELETE /projects/:id
+Delete project (OWNER only).
+
+**Response (204):** No content
+
+### Collaborators
+
+#### POST /projects/:projectId/collaborators
+Add a collaborator (OWNER only).
+
+**Request Body:**
+```json
+{
+    "email": "collaborator@example.com",
+    "role": "COLLABORATOR"
+}
+```
+
+**Response (201):**
+```json
+{
+    "projectId": "uuid",
+    "userId": "uuid",
+    "role": "COLLABORATOR"
+}
+```
+
+#### PUT /projects/:projectId/collaborators/:userId
+Update collaborator role (OWNER only).
+
+**Request Body:**
+```json
+{
+    "role": "VIEWER"
+}
+```
+
+**Response (200):** Updated collaborator object
+
+#### DELETE /projects/:projectId/collaborators/:userId
+Remove collaborator (OWNER only).
+
+**Response (204):** No content
+
+### Jobs
+
+#### POST /jobs/submit
+Submit a job (OWNER or COLLABORATOR).
+
+**Request Body:**
+```json
+{
+    "projectId": "project-uuid",
+    "type": "CODE_EXECUTION",
+    "payload": {
+        "code": "console.log('Hello')",
+        "language": "javascript"
+    }
+}
+```
+
+**Response (201):**
+```json
+{
+    "jobId": "job-uuid",
+    "status": "PENDING",
+    "createdAt": "2025-12-27T..."
+}
+```
+
+#### GET /jobs/:jobId
+Get job status and result.
+
+**Response (200):**
+```json
+{
+    "id": "job-uuid",
+    "projectId": "project-uuid",
+    "type": "CODE_EXECUTION",
+    "status": "COMPLETED",
+    "result": {
+        "output": "Hello",
+        "executionTime": 120
+    },
+    "createdAt": "...",
+    "completedAt": "..."
+}
+```
+
+### WebSocket API
+
+**Connection:** `ws://localhost:3001?token=<jwt_token>`
+
+#### Client → Server Events
+- `join:project` - Join a project room
+    ```javascript
+    socket.emit('join:project', { projectId: 'uuid' });
+    ```
+- `cursor:move` - Update cursor position
+    ```javascript
+    socket.emit('cursor:move', {
+        projectId: 'uuid',
+        x: 100,
+        y: 200,
+        color: '#FF0000'
+    });
+    ```
+- `project:update` - Broadcast project changes
+    ```javascript
+    socket.emit('project:update', {
+        projectId: 'uuid',
+        changes: { name: 'New Name' }
+    });
+    ```
+
+#### Server → Client Events
+- `user:joined` - User joined project
+- `user:left` - User left project
+- `cursor:update` - Cursor position update
+- `project:changed` - Project data changed
+
+### Error Responses
+- **400 Bad Request:** Validation errors
+- **401 Unauthorized:** Invalid or missing token
+- **403 Forbidden:** Insufficient permissions
+- **404 Not Found:** Resource not found
+- **500 Internal Server Error:** Server error
+
+### Roles & Permissions
+| Action | OWNER | COLLABORATOR | VIEWER |
+|--------|-------|--------------|--------|
+| View project | ✅ | ✅ | ✅ |
+| Edit project | ✅ | ✅ | ❌ |
+| Delete project | ✅ | ❌ | ❌ |
+| Add collaborators | ✅ | ❌ | ❌ |
+| Submit jobs | ✅ | ✅ | ❌ |
+| Real-time events | ✅ | ✅ | ✅ |
+
+## Deployment
+
+### Railway (Recommended)
+1. Sign up at https://railway.app and connect GitHub.
+2. Deploy PostgreSQL and Redis services.
+3. Deploy each backend (HTTP, WebSocket, Worker) separately.
+4. Set environment variables: `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT`, `JWT_SECRET`, `PORT`.
+5. Run `railway run prisma migrate deploy` for database migrations.
+
+### Docker Compose (VPS/EC2)
+```bash
+# Install Docker
+curl -fsSL https://get.docker.com | sh
+
+# Clone and start
+git clone <your-repo-url>
+cd collaborative-workspace
+docker-compose up -d
 
 
 
+### Environment Variables
+```
+DATABASE_URL=postgresql://user:pass@host:port/db
+REDIS_HOST=localhost
+REDIS_PORT=6379
+JWT_SECRET=your-secret-key
+PORT=3000
+NODE_ENV=production
+```
 
-apps/http-backend/
-├── src/
-│   ├── modules/
-│   │   └── auth/
-│   │       ├── auth.routes.ts
-│   │       ├── auth.controller.ts
-│   │       └── auth.service.ts
-│   ├── middleware/
-│   │   ├── auth.middleware.ts
-│   │   └── rbac.middleware.ts
-│   ├── app.ts
-│   └── server.ts
-├── .env
-├── package.json
-└── tsconfig.json
+### Health Checks
+- HTTP: `curl http://localhost:3000/health`
+- WebSocket: `curl http://localhost:3001/health`
+
+### Scaling
+- HTTP Backend: Stateless, scale with load balancer.
+- WebSocket Backend: Use Redis Pub/Sub for multi-instance scaling.
+- Worker Backend: Increase replicas for faster job processing.
+
+## Design Decisions
+
+### Microservices Architecture
+- Separation of concerns for scalability and resilience.
+- Independent scaling and failure isolation.
+
+### Redis Pub/Sub
+- Enables horizontal scaling of WebSocket servers.
+- Decouples event producers and consumers.
+
+### Bull Queue
+- Reliable job processing with persistence and retries.
+
+### Prisma ORM
+- Type-safe database interactions and automatic migrations.
+
+### Monorepo Structure
+- Shared packages reduce duplication; consistent tooling.
+
+## Security
+- JWT authentication with secure tokens.
+- Password hashing via bcrypt.
+- Input validation and CORS configuration.
+- SQL injection prevention with parameterized queries.
+- Environment-based secrets management.
+
+
+## Project Structure
+```
+collaborative-workspace/
+├── apps/
+│   ├── http-backend/       # REST API service
+│   ├── websocket-backend/  # WebSocket service
+│   └── worker-backend/     # Job processing service
+├── packages/
+│   ├── database/           # Prisma client and schemas
+│   └── common/             # Shared types and utilities
+├── docker/
+├── docker-compose.yml
+└── README.md
+```
+
+## Monitoring & Observability
+- Structured logging across services.
+- Error handling with try-catch.
+- Job failure alerts via Bull events.
+- Health check endpoints.
+
+## Future Enhancements
+- Rate limiting with Redis.
+- API versioning and OpenAPI docs.
+- Prometheus metrics.
+- GraphQL layer.
+- Kubernetes manifests.
+
+## License
+MIT
+
+## Author
+Vamsi - Full Stack Developer

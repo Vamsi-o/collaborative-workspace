@@ -1,7 +1,4 @@
-import {z} from "zod"
-
-
-
+import { z } from "zod";
 
 export enum HttpStatusCode {
   // 1xx: Informational
@@ -76,7 +73,13 @@ export enum HttpStatusCode {
   NetworkAuthenticationRequired = 511,
 }
 
-export  const signupSchema = z.object({
-    email : z.email() ,
-    password : z.string().min(8).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, "Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one digit, and one special character")
-})
+export const signupSchema = z.object({
+  email: z.email(),
+  password: z
+    .string()
+    .min(8)
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+      "Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one digit, and one special character"
+    ),
+});

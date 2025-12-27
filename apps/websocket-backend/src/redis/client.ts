@@ -1,8 +1,22 @@
-import Redis from "ioredis";  // ✅ This is right
-// @ts-ignore
-export const pubClient = new Redis({
-  host: process.env.REDIS_HOST || "localhost",
-  port: parseInt(process.env.REDIS_PORT || "6379"),
+import Redis from 'ioredis';
+
+//@ts-ignore
+const redis = new Redis({
+  host: process.env.REDIS_HOST || 'collab-redis',
+  port: Number(process.env.REDIS_PORT) || 6379,
+  retryStrategy: (times: number) => {
+    const delay = Math.min(times * 50, 2000);
+    return delay;
+  }
 });
 
+redis.on('error', (err: Error) => {
+  console.error('Redis Client Error:', err);
+});
+
+redis.on('connect', () => {
+  console.log('✅ Redis connected');
+});
+
+export const pubClient = redis;
 export const subClient = pubClient.duplicate();
