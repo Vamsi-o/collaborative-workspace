@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/redis/client.ts","./src/socket/event.ts","./src/socket/middleware.ts","./src/socket/handlers/connection.handler.ts","./src/socket/handlers/cursor.handler.ts","./src/socket/handlers/project.handler.ts"],"version":"5.9.2"}

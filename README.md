@@ -133,3 +133,22 @@ Learn more about the power of Turborepo:
 - [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
 - [Configuration Options](https://turborepo.com/docs/reference/configuration)
 - [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+
+
+
+
+apps/http-backend/
+├── src/
+│   ├── modules/
+│   │   └── auth/
+│   │       ├── auth.routes.ts
+│   │       ├── auth.controller.ts
+│   │       └── auth.service.ts
+│   ├── middleware/
+│   │   ├── auth.middleware.ts
+│   │   └── rbac.middleware.ts
+│   ├── app.ts
+│   └── server.ts
+├── .env
+├── package.json
+└── tsconfig.json
